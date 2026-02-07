@@ -1,0 +1,8 @@
+.env
+*.*:Zone.Identifier
+*:Zone.Identifier
+data/*
+storage/*
+__pycache__/
+*.pyc
+__pycache__/*

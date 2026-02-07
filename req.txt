@@ -1,0 +1,13 @@
+llama-index
+llama-index-vector-stores-qdrant
+sentence-transformers
+qdrant-client
+pypdf
+python-docx
+python-dotenv
+streamlit
+google-genai
+llama-index-llms-google-genai
+llama-index-retrievers-bm25
+llama-index-readers-file
+docx2txt
