@@ -83,20 +83,20 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             file_bytes = uploaded_file.getbuffer().tobytes()
             file_hash = compute_file_hash(file_bytes)
 
-        # DUPLICATE CHECK
+            # DUPLICATE CHECK
             if file_hash in existing_hashes:
                 st.warning(f"!!! '{uploaded_file.name}' already uploaded. Skipping...")
                 continue
 
-        # SAVE FILE
-        file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(file_bytes)
+            # SAVE FILE
+            file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
+            with open(file_path, "wb") as f:
+                f.write(file_bytes)
 
-        # REGISTER HASH
-        new_hashes.add(file_hash)
+            # REGISTER HASH
+            new_hashes.add(file_hash)
 
-        st.success(f"✅ Uploaded & registered: {uploaded_file.name}")
+            st.success(f"✅ Uploaded & registered: {uploaded_file.name}")
 
         save_hashes(new_hashes)
     # if uploaded_files:
@@ -408,7 +408,7 @@ if query:
             else:
                 #raise e
                 st.error(f"Error: {e}")
-                st.wart("Please try again later.")
+                st.warning("Please try again later.")
                 st.stop()
                 
         with st.expander("Response Metrics"):
