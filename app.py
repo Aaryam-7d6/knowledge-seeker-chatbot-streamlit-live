@@ -86,7 +86,7 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             # DUPLICATE CHECK
             if file_hash in existing_hashes:
                 st.warning(f"!!! '{uploaded_file.name}' already uploaded. Skipping...")
-            continue
+                continue
 
             # SAVE FILE
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
@@ -147,6 +147,10 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             #else:
                 
             with st.spinner("Indexing documents..."):
+                if not os.path.exists(config.DATA_DIR) or not os.listdir(config.DATA_DIR):
+                    st.warning("Please upload documents before indexing.")
+                    #st.stop()
+
                 build_index(config.DATA_DIR)
             st.success("Indexing completed")
     

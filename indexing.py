@@ -71,8 +71,8 @@ def build_index(data_dir):
     create_collection_if_not_exists()
     os.makedirs(data_dir, exist_ok=True) #create data_dir if not exists
     
-    if not os.listdir(data_dir):
-        raise RuntimeError("No documents found. Please upload documents before indexing.")
+    #if not os.listdir(data_dir):
+        #raise RuntimeError("No documents found. Please upload documents before indexing.")
     
     documents = SimpleDirectoryReader(data_dir, recursive=True).load_data()
 
