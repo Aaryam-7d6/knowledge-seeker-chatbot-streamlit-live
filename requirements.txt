@@ -11,3 +11,4 @@ llama-index-llms-google-genai
 llama-index-retrievers-bm25
 llama-index-readers-file
 docx2txt
+llama-index-embeddings-huggingface
