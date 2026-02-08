@@ -69,6 +69,7 @@ Settings.node_parser = SentenceSplitter(chunk_size=512,chunk_overlap=51)
 def build_index(data_dir):
     
     create_collection_if_not_exists()
+    os.makedirs(data_dir, exist_ok=True) #create data_dir if not exists
     documents = SimpleDirectoryReader(data_dir).load_data()
 
     if not documents:
