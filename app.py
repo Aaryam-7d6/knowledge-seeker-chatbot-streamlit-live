@@ -86,7 +86,7 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             # DUPLICATE CHECK
             if file_hash in existing_hashes:
                 st.warning(f"!!! '{uploaded_file.name}' already uploaded. Skipping...")
-                continue
+            continue
 
             # SAVE FILE
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
