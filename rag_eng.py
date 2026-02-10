@@ -6,7 +6,7 @@ from llama_index.core.response_synthesizers import get_response_synthesizer
 from embed import get_embedding_model
 from qdb import get_vector_store
 from llm import get_llm
-from config import TOP_K,TEMPERATURE
+from config import TOP_K,TEMPERATURE,PERSIST_DIR
 #import google.generativeai as genai
 #import llm_model as llmm
 import config
@@ -46,8 +46,15 @@ Settings.node_parser = SentenceSplitter(chunk_size=512,chunk_overlap=51)
 
 from llama_index.core import StorageContext, load_index_from_storage
 from qdb import get_vector_store
+import os
+
+def index_exists():
+    return os.path.exists(PERSIST_DIR) and os.listdir(PERSIST_DIR)
 
 def load_index():
+    if not index_exists():
+        return None
+    
     qdrant_store = get_vector_store()
 
     storage_context = StorageContext.from_defaults(

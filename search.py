@@ -110,7 +110,10 @@ from llama_index.core.storage.docstore import SimpleDocumentStore
 
 def get_query_engine(search_mode=SEARCH_MODE):
     
+        
     index = load_index()
+    if index is None:
+        return None
     
     docs = SimpleDirectoryReader(DATA_DIR).load_data()
     docstore = SimpleDocumentStore()

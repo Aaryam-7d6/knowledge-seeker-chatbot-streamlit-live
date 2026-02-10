@@ -90,6 +90,7 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
 
             # SAVE FILE
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, "wb") as f:
                 f.write(file_bytes)
 
@@ -354,13 +355,21 @@ query = st.chat_input("Ask a question based on uploaded documents",key="chat_inp
 #query = st.text_input("Ask a question based on uploaded documents",placeholder="Type your question here and press Enter...",key="chat_input")
 #query = st.text_input("Ask a question based on uploaded documents",key="chat_input")
 
+
 if query:
     
     st.session_state.chat_history.append({
         "role": "user",
         "content": query
     })
-    
+    GREETINGS = {"hi", "hello", "hey", "hii", "howdy", "greetings", "what's up", "good morning", "good afternoon", "good evening", "how are you", "how are you doing", "how's it going", "what's new", "what's happening"}
+
+    user_msg = query.strip().lower()
+
+    if user_msg in GREETINGS:
+        st.chat_message("assistant").write("Hello 👋 How may I assist you?")
+        st.stop()  # VERY IMPORTANT
+
     #with st.chat_message("user"):
         #st.write(query)
         #st.markdown(query)
@@ -375,6 +384,9 @@ if query:
     #query_engine = get_rag_engine()
     query_engine = get_query_engine(search_mode)
     
+    if query_engine is None:
+        st.warning("Please upload and index documents first.")
+        st.stop()
 
     with st.spinner("Thinking..."):
         #response = query_engine.query(query)
