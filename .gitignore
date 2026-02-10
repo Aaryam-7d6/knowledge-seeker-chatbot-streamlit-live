@@ -6,5 +6,4 @@ storage/*
 __pycache__/
 *.pyc
 __pycache__/*
-.devcontainer/
-.vscode/
+
