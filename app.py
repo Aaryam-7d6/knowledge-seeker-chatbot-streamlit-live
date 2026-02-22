@@ -75,7 +75,6 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
     #         st.success(f"Uploaded {uploaded_files.name}")
     
     if uploaded_files:
-        
         existing_hashes = load_hashes()
         new_hashes = set(existing_hashes)
 
@@ -83,21 +82,34 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             file_bytes = uploaded_file.getbuffer().tobytes()
             file_hash = compute_file_hash(file_bytes)
 
-            # DUPLICATE CHECK
-            if file_hash in existing_hashes:
-                st.warning(f"!!! '{uploaded_file.name}' already uploaded. Skipping...")
-                continue
-
-            # SAVE FILE
+            # Prepare target path
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+            # If a file with the same name already exists, compare hashes
+            if os.path.exists(file_path):
+                with open(file_path, "rb") as ef:
+                    existing_bytes = ef.read()
+                existing_hash = compute_file_hash(existing_bytes)
+                if existing_hash == file_hash:
+                    # Exact same content, skip and warn
+                    st.warning(f"'{uploaded_file.name}' already uploaded. Skipping...")
+                    continue
+                else:
+                    # Same filename but different content: avoid overwrite by renaming
+                    base, ext = os.path.splitext(uploaded_file.name)
+                    new_name = f"{base}_{file_hash[:8]}{ext}"
+                    file_path = os.path.join(config.DATA_DIR, new_name)
+                    st.info(f"File with same name exists; saving as {new_name}")
+
+            # Finally save the (possibly renamed) file
             with open(file_path, "wb") as f:
                 f.write(file_bytes)
 
             # REGISTER HASH
             new_hashes.add(file_hash)
 
-            st.success(f"✅ Uploaded & registered: {uploaded_file.name}")
+            st.success(f"✅ Uploaded & registered: {os.path.basename(file_path)}")
 
         save_hashes(new_hashes)
     # if uploaded_files:

@@ -125,8 +125,9 @@ def get_query_engine(search_mode=SEARCH_MODE):
     # if index.docstore is None or len(index.docstore.docs) == 0:
     #     raise RuntimeError("No documents available. Please index first.")
     
-    if not os.path.exists(os.path.join(STORAGE_DIR, "docstore.json")):
-        raise RuntimeError("No index found. Please click 'Index Documents' first.")
+    # It's possible the on-disk `docstore.json` isn't present while the
+    # vector index is available in the vector store (Qdrant). Don't require
+    # `docstore.json` — rely on `load_index()` above to determine availability.
 
 
     vector_retriever = VectorIndexRetriever(
