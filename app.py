@@ -512,10 +512,17 @@ for msg in st.session_state.chat_history:
                 )
 
 # --- auto scroll down ----
+st.markdown('<div id="end_marker"></div>', unsafe_allow_html=True)
 st.markdown(
     """
     <script>
-    window.scrollTo(0, document.body.scrollHeight);
+    // Delay slightly so Streamlit has updated the DOM
+    setTimeout(() => {
+        const el = document.getElementById('end_marker');
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+    }, 50);
     </script>
     """,
     unsafe_allow_html=True
