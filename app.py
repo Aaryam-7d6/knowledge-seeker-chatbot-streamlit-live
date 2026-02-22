@@ -58,11 +58,12 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
     
     #st.sidebar.subheader("Upload and Index Documents")
     st.subheader("Upload and Index Documents")
-    uploaded_files = st.file_uploader( #remove "sidebar."" after st.
+    uploaded_files = st.file_uploader(
         "Upload PDF, TXT, DOCX, MD files",
         type=["pdf", "txt", "docx", "md"],
-        accept_multiple_files=True
-        )
+        accept_multiple_files=True,
+        key="uploaded_files",
+    )
 
     # os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -75,7 +76,6 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
     #         st.success(f"Uploaded {uploaded_files.name}")
     
     if uploaded_files:
-        
         existing_hashes = load_hashes()
         new_hashes = set(existing_hashes)
 
@@ -83,23 +83,49 @@ with st.sidebar.expander("Upload and indexing", expanded=False):
             file_bytes = uploaded_file.getbuffer().tobytes()
             file_hash = compute_file_hash(file_bytes)
 
-            # DUPLICATE CHECK
+            # If this exact content was already registered, skip.
             if file_hash in existing_hashes:
-                st.warning(f"!!! '{uploaded_file.name}' already uploaded. Skipping...")
+                st.warning(f"'{uploaded_file.name}' already registered. Skipping...")
                 continue
 
-            # SAVE FILE
+            # Prepare target path and ensure directory exists
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+            # If a file with the same name exists on disk, compare content
+            if os.path.exists(file_path):
+                with open(file_path, "rb") as ef:
+                    existing_bytes = ef.read()
+                existing_hash = compute_file_hash(existing_bytes)
+                if existing_hash == file_hash:
+                    # Exact same content already present on disk
+                    st.warning(f"'{uploaded_file.name}' already uploaded. Skipping...")
+                    # also register the hash if missing
+                    new_hashes.add(file_hash)
+                    continue
+                else:
+                    # Same filename, different content -> avoid overwrite
+                    base, ext = os.path.splitext(uploaded_file.name)
+                    new_name = f"{base}_{file_hash[:8]}{ext}"
+                    file_path = os.path.join(config.DATA_DIR, new_name)
+                    st.info(f"File with same name exists; saving as {new_name}")
+
+            # Save the file (either original name or renamed)
             with open(file_path, "wb") as f:
                 f.write(file_bytes)
 
-            # REGISTER HASH
+            # Register the computed hash
             new_hashes.add(file_hash)
 
-            st.success(f"✅ Uploaded & registered: {uploaded_file.name}")
+            st.success(f"✅ Uploaded & registered: {os.path.basename(file_path)}")
 
         save_hashes(new_hashes)
+
+        # Clear the uploader widget so the same selection is not re-processed
+        try:
+            st.session_state["uploaded_files"] = None
+        except Exception:
+            pass
     # if uploaded_files:
     #     for uploaded_file in uploaded_files:
     #         file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
