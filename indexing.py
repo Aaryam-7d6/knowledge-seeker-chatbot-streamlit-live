@@ -17,6 +17,7 @@ import config
 from qdb import get_vector_store
 from utils.file_hash import compute_file_hash
 from qdb import create_collection_if_not_exists
+from utils.file_registry import load_indexed_hashes, mark_hash_indexed
 
 
 # Chunking Configuration
@@ -67,36 +68,38 @@ Settings.node_parser = SentenceSplitter(chunk_size=512,chunk_overlap=51)
 
 
 def build_index(data_dir):
-    
     create_collection_if_not_exists()
-    os.makedirs(data_dir, exist_ok=True) #create data_dir if not exists
-    
-    #if not os.listdir(data_dir):
-        #raise RuntimeError("No documents found. Please upload documents before indexing.")
-    
-    documents = SimpleDirectoryReader(data_dir, recursive=True).load_data()
+    os.makedirs(data_dir, exist_ok=True)
+
+    indexed_hashes = load_indexed_hashes()
+    unindexed_files = []
+
+    for root, _, files in os.walk(data_dir):
+        for file_name in files:
+            file_path = os.path.join(root, file_name)
+            try:
+                with open(file_path, "rb") as f:
+                    file_hash = compute_file_hash(f.read())
+            except OSError:
+                continue
+            if file_hash not in indexed_hashes:
+                unindexed_files.append(file_path)
+
+    if not unindexed_files:
+        print("All uploaded files are already indexed. Skipping.")
+        return
+
+    documents = []
+    for file_path in unindexed_files:
+        try:
+            documents.extend(SimpleDirectoryReader(file_path).load_data())
+        except Exception:
+            documents.extend(SimpleDirectoryReader(input_files=[file_path]).load_data())
 
     if not documents:
-        raise RuntimeError("No documents found to index.")
-    
-    # for document in documents:
-    #     #document.metadata["file_name"] = os.path.basename(document.metadata.get("file_path", "unknown"))
-    #     #document.metadata["file_path"] = document.metadata.get("file_path", "unknown")
-    #     # Add page label if available (assuming it's part of the metadata)
-    #     #document.metadata["page_label"] = document.metadata.get("page_label", "N/A")
-    #     metadata = {
-    #         "file_name": [document.name],
-    #         #"file_hash": file_hash(file.getbuffer())
-    #         "file_hash": [file_hash(document.get_content().encode('utf-8'))]
-    #     }
-    #     document.metadata.update(metadata)
-        
-    #client = QdrantClient(path=STORAGE_DIR)
-    #client = QdrantClient(host=QDRANT_HOST,port=QDRANT_PORT)
+        raise RuntimeError("No new documents found to index.")
 
-    #vector_store = QdrantVectorStore(client=client,collection_name=COLLECTION_NAME)
     vector_store = get_vector_store()
-
     storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
     index = VectorStoreIndex.from_documents(
@@ -105,7 +108,13 @@ def build_index(data_dir):
     )
 
     index.storage_context.persist(persist_dir=STORAGE_DIR)
-    #return index
+
+    for file_path in unindexed_files:
+        try:
+            with open(file_path, "rb") as f:
+                mark_hash_indexed(compute_file_hash(f.read()))
+        except OSError:
+            continue
     
 # client = QdrantClient(
 #     url="YOUR_QDRANT_URL",
