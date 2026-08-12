@@ -115,6 +115,21 @@ QDRANT_API_KEY=your_qdrant_api_key
 streamlit run app.py
 ```
 
+### Optional: build a project knowledge graph
+
+If you want a codebase-level knowledge graph for AI exploration and navigation:
+
+```bash
+# Generates graphify-out/graph.json and the report locally
+/graphify .
+```
+
+If you do not have a Gemini key configured, use the code-only mode:
+
+```bash
+/graphify . --code-only #or graphify . --code-only
+```
+
 ---
 
 ## Development Repo
